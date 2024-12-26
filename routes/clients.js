@@ -12,6 +12,12 @@ module.exports = (db) => {
         }
 
         try {
+            // Verificar si ya existe un cliente con el mismo nombre
+            const existingClient = db.prepare('SELECT * FROM Clients WHERE name = ?').get(name);
+            if (existingClient) {
+                return res.status(400).send('Ya existe un cliente con el mismo nombre.');
+            }
+            //los tipos de cuenta son prepago, postpago, credito
             const stmt = db.prepare(
                 'INSERT INTO Clients (name, accountType, balance) VALUES (?, ?, ?)'
             );
@@ -21,7 +27,6 @@ module.exports = (db) => {
             res.status(400).send('Error al crear el cliente: ' + err.message);
         }
     });
-
     // Obtener todos los clientes
     router.get('/', (req, res) => {
         const clients = db.prepare('SELECT * FROM Clients').all();
@@ -37,7 +42,15 @@ module.exports = (db) => {
             res.status(404).send('Cliente no encontrado.');
         }
     });
-
+    //Obtener cliente por nombre
+    router.get('/name/:name', (req, res) => {
+        const clients = db.prepare('SELECT * FROM Clients WHERE name LIKE ?').all(`${req.params.name}%`);
+        if (clients) {
+            res.json(clients);
+        } else {
+            res.status(404).send('Cliente no encontrado.');
+        }
+    });
     // Actualizar cliente
     router.put('/:id', (req, res) => {
         const { name, accountType, balance } = req.body;

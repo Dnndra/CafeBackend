@@ -5,7 +5,7 @@ module.exports = (db) => {
 
     // Crear producto
     router.post('/', (req, res) => {
-        const { name, stock, price, threshold, tag} = req.body;
+        const { name, stock, price, threshold, tag } = req.body;
         if (!name || stock == null || !price || !tag) {
             return res.status(400).send('Todos los campos son obligatorios.');
         }
@@ -40,9 +40,23 @@ module.exports = (db) => {
         }
     });
 
+    // Obtener productos por tag
+    router.get('/tag/:tag', (req, res) => {
+        const products = db.prepare('SELECT * FROM Products WHERE tag = ?').all(req.params.tag);
+        res.json(products);
+    });
+
+    // Obtener productos por nombre parcial
+    router.get('/name/:name', (req, res) => {
+        const products = db.prepare('SELECT * FROM Products WHERE name LIKE ?').all(`%${req.params.name}%`);
+        res.json(products);
+    });
+
+
+
     // Actualizar producto
     router.put('/:id', (req, res) => {
-        const { name, stock, price, threshold, tag} = req.body;
+        const { name, stock, price, threshold, tag } = req.body;
 
         const stmt = db.prepare(
             'UPDATE Products SET name = ?, stock = ?, price = ?, threshold = ? WHERE id = ?'
