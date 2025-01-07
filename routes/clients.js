@@ -58,10 +58,10 @@ module.exports = (db) => {
         const stmt = db.prepare(
             'UPDATE Clients SET name = ?, accountType = ?, balance = ? WHERE id = ?'
         );
-        const result = stmt.run(name, accountType, balance, req.params.id);
+        const result = stmt.run(name, accountType.toLowerCase(), balance, req.params.id);
 
         if (result.changes > 0) {
-            res.send('Cliente actualizado exitosamente.');
+            res.status(200).send('Cliente actualizado exitosamente.');
         } else {
             res.status(404).send('Cliente no encontrado.');
         }
