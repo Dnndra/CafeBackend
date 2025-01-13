@@ -8,25 +8,26 @@ module.exports = (db) => {
         const { name, accountType, balance } = req.body;
 
         if (!name || !accountType) {
-            return res.status(400).send('Todos los campos son obligatorios.');
+            return res.status(400).json({ error: 'Todos los campos son obligatorios.' });
         }
 
         try {
             // Verificar si ya existe un cliente con el mismo nombre
             const existingClient = db.prepare('SELECT * FROM Clients WHERE name = ?').get(name);
             if (existingClient) {
-                return res.status(400).send('Ya existe un cliente con el mismo nombre.');
+                return res.status(400).json({ error: 'Ya existe un cliente con el mismo nombre.' });
             }
-            //los tipos de cuenta son prepago, postpago, credito
+            // Los tipos de cuenta son prepago, postpago, crédito
             const stmt = db.prepare(
                 'INSERT INTO Clients (name, accountType, balance) VALUES (?, ?, ?)'
             );
-            stmt.run(name, accountType, balance || 0);
-            res.status(201).send('Cliente creado exitosamente.');
+            stmt.run(name, accountType.toLowerCase(), balance || 0);
+            res.status(201).json({ message: 'Cliente creado exitosamente.' });
         } catch (err) {
-            res.status(400).send('Error al crear el cliente: ' + err.message);
+            res.status(400).json({ error: 'Error al crear el cliente: ' + err.message });
         }
     });
+
     // Obtener todos los clientes
     router.get('/', (req, res) => {
         const clients = db.prepare('SELECT * FROM Clients').all();
@@ -39,18 +40,20 @@ module.exports = (db) => {
         if (client) {
             res.json(client);
         } else {
-            res.status(404).send('Cliente no encontrado.');
+            res.status(404).json({ error: 'Cliente no encontrado.' });
         }
     });
-    //Obtener cliente por nombre
+
+    // Obtener cliente por nombre
     router.get('/name/:name', (req, res) => {
         const clients = db.prepare('SELECT * FROM Clients WHERE name LIKE ?').all(`${req.params.name}%`);
-        if (clients) {
+        if (clients.length > 0) {
             res.json(clients);
         } else {
-            res.status(404).send('Cliente no encontrado.');
+            res.status(404).json({ error: 'Cliente no encontrado.' });
         }
     });
+
     // Actualizar cliente
     router.put('/:id', (req, res) => {
         const { name, accountType, balance } = req.body;
@@ -61,9 +64,9 @@ module.exports = (db) => {
         const result = stmt.run(name, accountType.toLowerCase(), balance, req.params.id);
 
         if (result.changes > 0) {
-            res.status(200).send('Cliente actualizado exitosamente.');
+            res.status(200).json({ message: 'Cliente actualizado exitosamente.' });
         } else {
-            res.status(404).send('Cliente no encontrado.');
+            res.status(404).json({ error: 'Cliente no encontrado.' });
         }
     });
 
@@ -73,9 +76,9 @@ module.exports = (db) => {
         const result = stmt.run(req.params.id);
 
         if (result.changes > 0) {
-            res.send('Cliente eliminado exitosamente.');
+            res.status(200).json({ message: 'Cliente eliminado exitosamente.' });
         } else {
-            res.status(404).send('Cliente no encontrado.');
+            res.status(404).json({ error: 'Cliente no encontrado.' });
         }
     });
 
