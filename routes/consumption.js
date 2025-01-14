@@ -118,5 +118,29 @@ module.exports = (db) => {
         }
     });
 
+    router.get('/history', (req, res) => {
+        const { startDate, endDate } = req.query;
+
+        if (!startDate || !endDate) {
+            return res.status(400).json({ error: 'Los parámetros de fecha inicial y final son obligatorios.' });
+        }
+
+        try {
+            const history = db.prepare(
+                `SELECT ch.*, c.name AS clientName, p.name AS productName
+                 FROM ConsumptionHistory ch
+                 JOIN Clients c ON ch.clientId = c.id
+                 JOIN Products p ON ch.productId = p.id
+                 WHERE ch.date BETWEEN ? AND ?`
+            ).all(startDate, endDate);
+            res.json(history);
+        } catch (err) {
+            res.status(400).json({ error: 'Error al obtener el historial de consumo: ' + err.message });
+        }
+    });
+
+
+    
+
     return router;
 };
