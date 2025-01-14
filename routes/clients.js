@@ -21,7 +21,7 @@ module.exports = (db) => {
             const stmt = db.prepare(
                 'INSERT INTO Clients (name, accountType, balance) VALUES (?, ?, ?)'
             );
-            stmt.run(name, accountType.toLowerCase(), balance || 0);
+            stmt.run(name, accountType, balance || 0);
             res.status(201).json({ message: 'Cliente creado exitosamente.' });
         } catch (err) {
             res.status(400).json({ error: 'Error al crear el cliente: ' + err.message });
@@ -61,7 +61,7 @@ module.exports = (db) => {
         const stmt = db.prepare(
             'UPDATE Clients SET name = ?, accountType = ?, balance = ? WHERE id = ?'
         );
-        const result = stmt.run(name, accountType.toLowerCase(), balance, req.params.id);
+        const result = stmt.run(name, accountType, balance, req.params.id);
 
         if (result.changes > 0) {
             res.status(200).json({ message: 'Cliente actualizado exitosamente.' });
